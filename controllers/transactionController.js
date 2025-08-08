@@ -35,18 +35,28 @@ const {
 const getAll = async (req, res) => {
   const cacheKey = `transactions:${req.user.id}`;
   try {
+    // Check Redis cache
     const cached = await redisClient.get(cacheKey);
     if (cached) {
-      return res.json(JSON.parse(cached));
+      const parsed = JSON.parse(cached);
+      return res.json({ transactions: parsed });
     }
 
-    const transactions = await getTransactionsByUser(req.user.id);
-    await redisClient.setEx(cacheKey, 900, JSON.stringify(transactions)); // 15 min
-    res.json(transactions);
+    const transactions = await getTransactionsByUser(req.user.id) || [];
+
+    // Cache for 15 minutes
+    await redisClient.setEx(cacheKey, 900, JSON.stringify(transactions));
+
+    // Always respond with { transactions: [...] }
+    res.json({ transactions });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to get transactions', error: err.message });
+    res.status(500).json({
+      message: 'Failed to get transactions',
+      error: err.message,
+    });
   }
 };
+
 
 /**
  * @swagger
