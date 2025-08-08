@@ -2,6 +2,38 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { createUser, getUserByEmail } = require('../models/userModel');
 
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: John Doe
+ *               email:
+ *                 type: string
+ *                 example: john@example.com
+ *               password:
+ *                 type: string
+ *                 example: secret123
+ *               role:
+ *                 type: string
+ *                 enum: [admin, user, read-only]
+ *     responses:
+ *       201:
+ *         description: User registered
+ *       400:
+ *         description: Validation error
+ */
+
 const register = async (req, res) => {
   const { name, email, password, role } = req.body;
   try {
@@ -16,6 +48,50 @@ const register = async (req, res) => {
     res.status(500).json({ message: 'Registration error', error: err.message });
   }
 };
+
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Log in a user and return a JWT
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: john@example.com
+ *               password:
+ *                 type: string
+ *                 example: secret123
+ *     responses:
+ *       200:
+ *         description: User authenticated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     name:
+ *                       type: string
+ *                     email:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *       400:
+ *         description: Invalid credentials
+ */
 
 const login = async (req, res) => {
   const { email, password } = req.body;
