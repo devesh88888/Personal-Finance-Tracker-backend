@@ -4,7 +4,7 @@ const db = require('../config/db');
 const getAnalytics = async (req, res) => {
   const cacheKey = `analytics:${req.user.id}`;
   try {
-    // Check Redis cache first
+    // ✅ Check Redis cache first
     const cached = await redisClient.get(cacheKey);
     if (cached) {
       return res.json(JSON.parse(cached));
@@ -12,24 +12,29 @@ const getAnalytics = async (req, res) => {
 
     const userId = req.user.id;
 
+    // ✅ Total Income
     const incomeResult = await db.query(
       'SELECT COALESCE(SUM(amount), 0) AS total_income FROM transactions WHERE user_id = $1 AND type = $2',
       [userId, 'income']
     );
+
+    // ✅ Total Expense
     const expenseResult = await db.query(
       'SELECT COALESCE(SUM(amount), 0) AS total_expense FROM transactions WHERE user_id = $1 AND type = $2',
       [userId, 'expense']
     );
 
+    // ✅ Category Breakdown (excluding NULL categories)
     const byCategory = await db.query(
       `SELECT category, SUM(amount) AS total
        FROM transactions
-       WHERE user_id = $1
+       WHERE user_id = $1 AND category IS NOT NULL
        GROUP BY category
        ORDER BY total DESC`,
       [userId]
     );
 
+    // ✅ Monthly Trends (income vs expense)
     const monthly = await db.query(
       `SELECT TO_CHAR(created_at, 'YYYY-MM') AS month, 
               SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) AS income,
@@ -41,6 +46,7 @@ const getAnalytics = async (req, res) => {
       [userId]
     );
 
+    // ✅ Construct analytics object
     const analytics = {
       totalIncome: parseFloat(incomeResult.rows[0].total_income),
       totalExpense: parseFloat(expenseResult.rows[0].total_expense),
@@ -51,8 +57,10 @@ const getAnalytics = async (req, res) => {
       monthlyTrends: monthly.rows,
     };
 
-    await redisClient.setEx(cacheKey, 900, JSON.stringify(analytics)); // 15 mins cache
+    // ✅ Cache the analytics for 15 minutes
+    await redisClient.setEx(cacheKey, 900, JSON.stringify(analytics));
 
+    // ✅ Return analytics
     res.json(analytics);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch analytics', error: err.message });
