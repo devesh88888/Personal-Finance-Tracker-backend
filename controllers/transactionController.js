@@ -80,6 +80,7 @@ const create = async (req, res) => {
   try {
     const transaction = await createTransaction({ ...req.body, userId: req.user.id });
     await redisClient.del(`transactions:${req.user.id}`);
+    await redisClient.del(`analytics:${req.user.id}`);
     res.status(201).json(transaction);
   } catch (err) {
     res.status(500).json({ message: 'Failed to create transaction', error: err.message });
@@ -128,6 +129,7 @@ const update = async (req, res) => {
     const updated = await updateTransaction(req.params.id, req.user.id, req.body);
     if (!updated) return res.status(404).json({ message: 'Transaction not found' });
     await redisClient.del(`transactions:${req.user.id}`);
+    await redisClient.del(`analytics:${req.user.id}`);
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: 'Failed to update transaction', error: err.message });
@@ -165,6 +167,7 @@ const remove = async (req, res) => {
     const deleted = await deleteTransaction(req.params.id, req.user.id);
     if (!deleted) return res.status(404).json({ message: 'Transaction not found' });
     await redisClient.del(`transactions:${req.user.id}`);
+    await redisClient.del(`analytics:${req.user.id}`);
     res.json(deleted);
   } catch (err) {
     res.status(500).json({ message: 'Failed to delete transaction', error: err.message });

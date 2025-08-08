@@ -25,12 +25,19 @@ app.use(express.json());
 // ✅ Swagger Docs
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+
+
 // ✅ Routes
 const authRoutes = require('./routes/authRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+
+
 
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/analytics', analyticsRoutes);
+
 
 app.get('/', (req, res) => {
   res.json({ message: 'API is running 🚀' });
