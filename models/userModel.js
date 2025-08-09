@@ -13,7 +13,15 @@ const getUserByEmail = async (email) => {
   return result.rows[0];
 };
 
+const listUsers = async () => {
+  const result = await pool.query(
+    'SELECT id, name, email, role, created_at FROM users ORDER BY id DESC'
+  );
+  return result.rows;
+};
+
 module.exports = {
   createUser,
   getUserByEmail,
+  listUsers,
 };
