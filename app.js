@@ -13,11 +13,13 @@ require('./config/redis');
 
 const app = express();
 
+// ✅ Make rate-limiter/IP detection correct behind proxies (localhost/NGINX/Render/etc.)
+app.set('trust proxy', 1);
+
 // ✅ Security Middleware
 app.use(helmet());
 
-// ✅ CORS Config
-// For dev you can allow all. For prod, set FRONTEND_URL in env and restrict.
+// ✅ CORS
 app.use(
   cors({
     origin: process.env.FRONTEND_URL || '*',
@@ -25,22 +27,22 @@ app.use(
   })
 );
 
-// ✅ Parse JSON
+// ✅ JSON parsing
 app.use(express.json());
 
-// ✅ Swagger Docs
+// ✅ Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ✅ Routes
 const authRoutes = require('./routes/authRoutes');
 const transactionRoutes = require('./routes/transactionRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
-const userRoutes = require('./routes/userRoutes'); // 👈 NEW (admin only)
+const userRoutes = require('./routes/userRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/api/users', userRoutes); // 👈 NEW
+app.use('/api/users', userRoutes);
 
 // ✅ Health check
 app.get('/', (_req, res) => {
@@ -48,3 +50,4 @@ app.get('/', (_req, res) => {
 });
 
 module.exports = app;
+
