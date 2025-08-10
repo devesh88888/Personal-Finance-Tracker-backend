@@ -46,7 +46,7 @@ app.use('/api/users', userRoutes);
 
 // ✅ Health check
 app.get('/', (_req, res) => {
-  res.json({ message: 'API is running 🚀' });
+  res.json({ message: 'Welcome to Finance Tracking Application' });
 });
 
 module.exports = app;
